@@ -1,7 +1,9 @@
 from django.shortcuts import render
 from .models import quakedbs
 from quake.forms import FilterResults
+import urllib.request, urllib.parse, urllib.error
 import json
+import re
 from datetime import datetime
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
@@ -23,31 +25,31 @@ def check_table():
 
 
 def usgs():
+    fhand = urllib.request.urlopen('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson').read()
+    fhand = fhand.decode('UTF-8')
     lendb = check_table()
     print ('rows count:', lendb)
     if lendb > 0:
         return quakedbs.objects.all()
     else:
-        file = 'quake/static/significant_month.json'
-        with open(file, 'r+') as ff:
-            data = json.load(ff)
-            for item in data['features']:
-                mag = item['properties']['mag']
-                place = item['properties']['place']
-                timestamp = item['properties']['time']
-                realtime = datetime.fromtimestamp(timestamp / 1e3)
-                latitude = item['geometry']['coordinates'][0]
-                longitude = item['geometry']['coordinates'][1]
-                title = item['properties']['title']
-                remarks = item['properties']['tsunami']
-                country = re.findall(', ([^A-Za-z]*\S+)', place)
-                country = country[0]
-                mags = quakedbs()
-                mags.epicentre = place
-                mags.tsunami = remarks
-                mags.magnitude = mag
-                mags.date = realtime
-                mags.country = country
+        data = json.loads(fhand)
+        for item in data['features']:
+            mag = item['properties']['mag']
+            place = item['properties']['place']
+            timestamp = item['properties']['time']
+            realtime = datetime.fromtimestamp(timestamp / 1e3)
+            latitude = item['geometry']['coordinates'][0]
+            longitude = item['geometry']['coordinates'][1]
+            title = item['properties']['title']
+            remarks = item['properties']['tsunami']
+            country = re.findall(', (\D+)', place)
+            mags = quakedbs()
+            mags.epicentre = place
+            mags.tsunami = remarks
+            mags.magnitude = mag
+            mags.date = realtime
+            for state in country:
+                mags.country = state
                 # mags = quakedb( date = timestamp,
                 #                  latitude = latitude,
                 #                  longitude = longitude,
@@ -55,8 +57,8 @@ def usgs():
                 #                  remarks = remarks,
                 #                  epicentre = place,
                 #                  )
-                mags.save()
-        return quakedbs.objects.all()
+            mags.save()
+    return quakedbs.objects.all()
 
 
 def earthdata(request):
@@ -69,29 +71,23 @@ def earthdata(request):
         listdata = paginator.page(1)
     except EmptyPage:
         listdata = paginator.page(paginator.num_pages)
-    return render(request, 'quake/earthdata.html', {'listdata': listdata})
-
-def earthdata(request):
-    template_name = 'quake/earthdata.html'
     form = FilterResults()
-    questions = quakedbs.objects.order_by('pub_date')
+    questions = quakedbs.objects.order_by('magnitude')
+    #print(questions)
     if request.method == 'POST':
         # form = FilterResults(request.POST)
-        status = request.POST['filter_option']
-        form = FilterResults(request.POST)
+        status = request.POST.get('status')
+        #form = FilterResults(request.POST)
         print("in home ", status)
-        if status == "6":
-            choices_filtering = quakedbs.objects.all().filter(magnitude__lte=7).order_by('choice_text')
-        elif status == "5":
-            choices_filtering = quakedbs.objects.all().filter(magnitude__lte=6).order_by('choice_text')
+        if status == "5":
+            choices_filtering = quakedbs.objects.all().filter(magnitude__gte=5).order_by('magnitude')
         elif status == "4":
-            choices_filtering = quakedbs.objects.all().filter(magnitude__lte=5).order_by('choice_text')
+            choices_filtering = quakedbs.objects.all().filter(magnitude__gte=4).order_by('magnitude')
         elif status == "3":
-            choices_filtering = quakedbs.objects.all().filter(magnitude__gte=4).order_by('choice_text')
+            choices_filtering = quakedbs.objects.all().filter(magnitude__lte=4).order_by('magnitude')
         else:
             status == "2"
-            choices_filtering = quakedbs.objects.all().filter(magnitude__lt=3).order_by('choice_text')
-
-        return render(request, template_name,
-                      {'title': 'T20 Index Page', 'head': 'T20 Index Head', 'questions': questions,
-                       'form': form })
+            choices_filtering = quakedbs.objects.all().filter(magnitude__lte=3).order_by('magnitude')
+    else:
+        form = FilterResults()
+    return render(request, 'quake/earthdata.html', {'listdata': listdata, 'questions': questions, 'form': form})
