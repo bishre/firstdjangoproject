@@ -56,31 +56,6 @@ def usgs():
 
 
 def earthdata(request):
-    # def usgs():
-    #     file = 'quake/static/significant_month.json'
-    #     with open(file, 'r+') as ff:
-    #         data = json.load(ff)
-    #         for item in data['features']:
-    #             mag = item['properties']['mag']
-    #             place = item['properties']['place']
-    #             timestamp = item['properties']['time']
-    #             realtime = datetime.fromtimestamp(timestamp / 1e3)
-    #             latitude = item['geometry']['coordinates'][0]
-    #             longitude = item['geometry']['coordinates'][1]
-    #             title = item['properties']['title']
-    #             remarks = item['properties']['tsunami']
-    #             mags = quakedbs()
-    #             mags.epicentre = place
-    #             mags.date = realtime
-    #             mags.magnitude = mag
-    #             # mags = quakedb( date = timestamp,
-    #             #                  latitude = latitude,
-    #             #                  longitude = longitude,
-    #             #                  magnitude = mag,
-    #             #                  remarks = remarks,
-    #             #                  epicentre = place,
-    #             #                  )
-    #             mags.save()
     listdata = usgs()
     page = request.GET.get('page', 1)
     paginator = Paginator(listdata, 50)
