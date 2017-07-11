@@ -1,5 +1,5 @@
 from django import forms
-from quake.models import quakedbs
+from quake.models import quakedbs, Contact
 from datetime import datetime
 from django.utils import timezone
 from django.contrib.auth.forms import UserCreationForm
@@ -33,13 +33,13 @@ from django.contrib.auth.models import User
 #     class Meta:
 #         fields = ('__all__',)
 #
-# class ContactForm(forms.Form):
-#     subject = forms.CharField(help_text='Subject',required=True)
-#     emailAddress = forms.EmailField(help_text='Email Address')
-#     message = forms.CharField(required=False,widget=forms.Textarea,help_text='Message')
-#     class Meta:
-#         model = Contact
-#         fields = ('__all__',)
+class ContactForm(forms.Form):
+    subject = forms.CharField(help_text='Subject',required=True)
+    emailAddress = forms.EmailField(help_text='Email Address')
+    message = forms.CharField(required=False,widget=forms.Textarea,help_text='Message')
+    class Meta:
+        model = Contact
+        fields = ('__all__',)
 #
 # class ChoiceDeleteForm(forms.ModelForm):
 #     class Meta:
@@ -60,11 +60,13 @@ from django.contrib.auth.models import User
 class FilterResults(forms.Form):
     FILTER_SET = (
         ('','    _ _ Select Option  _ _   '),
-        (6, 'Magnitude > 7'),
+        (6, 'Magnitude >= 7'),
         (5, 'Magnitude > 6'),
-        (4, 'Magnitude < 5'),
+        (4, 'Magnitude >= 5'),
         (3, 'Magnitude > 4'),
-        (2, 'Magnitude > 2')
+        (2, 'Magnitude < 4'),
+        (1, 'Magnitude <= 3'),
+        (0, 'Magnitude < 7')
     )
     # status = forms.ChoiceField(choices=FILTER_SET,help_text='Voting Filters')
     # status = forms.ChoiceField(help_text='Voting Filters',required=True,choices=FILTER_SET)
