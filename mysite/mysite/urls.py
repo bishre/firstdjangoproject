@@ -24,6 +24,8 @@ urlpatterns = [
     #url(r'^quake/', include('quake.urls')),
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.index, name='index'),
-    #url(r'^quake', views.index, name='index'),
-    url(r'^quake/earthdata', views.earthdata, name='earthdata'),
+    url(r'^quake', views.index, name='index'),
+    url(r'^index', views.index, name='index'),
+    url(r'^earthdata', views.earthdata, name='earthdata'),
+    url(r'^contact', views.contact, name='contact'),
 ]

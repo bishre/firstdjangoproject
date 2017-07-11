@@ -26,7 +26,7 @@ SECRET_KEY = '50)ugovp!i@9$zsr@564xu2%fxnz(@g6+zh#g4@f!1a383=i@+'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Application definition
 
