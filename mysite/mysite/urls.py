@@ -27,5 +27,6 @@ urlpatterns = [
     url(r'^quake', views.index, name='index'),
     url(r'^index', views.index, name='index'),
     url(r'^earthdata', views.earthdata, name='earthdata'),
+    url(r'^map', views.map, name='map'),
     url(r'^contact', views.contact, name='contact'),
 ]
