@@ -3,6 +3,7 @@ from .models import quakedbs, Contact
 from quake.forms import FilterResults, ContactForm
 from django.core.mail import BadHeaderError
 import urllib.request, urllib.parse, urllib.error
+from django.http import HttpResponse
 import json
 import re
 from datetime import datetime
@@ -11,6 +12,12 @@ from django.core.mail import EmailMessage
 from django.shortcuts import redirect
 from django.template import Context
 from django.template.loader import get_template
+from mpl_toolkits.basemap import Basemap
+import matplotlib.pyplot as plt
+import numpy as np
+import csv
+import io
+from io import *
 
 
 # from .models import Question, Choice
@@ -126,3 +133,63 @@ def contact(request):
             return redirect('contact')
     return render(request, "quake/contact.html", {'form': form})
 
+def map(request):
+    # Open the earthquake data file.
+    filename = 'earthquake_data.csv'
+    # Create empty lists for the latitudes and longitudes.
+    lats, lons = [], []
+    magnitudes = []
+    timestrings = []
+    # Read through the entire file, skip the first line,
+    #  and pull out just the lats and lons.
+    with open(filename) as f:
+        # Create a csv reader object.
+        reader = csv.reader(f)
+        # Ignore the header row.
+        next(reader)
+        # Store the latitudes and longitudes in the appropriate lists.
+        for row in reader:
+            lats.append(float(row[1]))
+            lons.append(float(row[2]))
+            magnitudes.append(float(row[4]))
+            timestrings.append(row[0])
+    # Display the first 5 lats and lons.
+    # print('lats', lats[0:5])
+    # print('lons', lons[0:5])
+    def get_marker_color(magnitude):
+        if magnitude < 3.0:
+            return ('go')
+        elif magnitude < 5.0:
+            return ('yo')
+        else:
+            return ('ro')
+    # make sure the value of resolution is a lowercase L,
+    #  for 'low', not a numeral 1
+    plt.figure(figsize=(10, 8))
+    my_map = Basemap(projection='robin', lat_0=0, lon_0=-130,
+                     resolution='l', area_thresh=1000.0)
+
+    my_map.drawcoastlines()
+    my_map.drawcountries()
+    # my_map.fillcontinents(color='gray')
+    my_map.bluemarble()
+    my_map.drawmapboundary()
+    my_map.drawmeridians(np.arange(0, 360, 30))
+    my_map.drawparallels(np.arange(-90, 90, 30))
+
+    min_marker_size = 2.5
+    for lon, lat, mag in zip(lons, lats, magnitudes):
+        x, y = my_map(lon, lat)
+        msize = min_marker_size * mag
+        marker_string = get_marker_color(mag)
+        my_map.plot(x, y, marker_string, markersize=msize)
+
+    title_string = 'Earthquakes of Magnitude 1.0 or Greater\n'
+    title_string += '%s through %s' % (timestrings[-1][:10], timestrings[0][:10])
+    plt.title(title_string)
+    figure = StringIO()
+    plt.show(figure)
+    #response = HttpResponse(content_type='image/png')
+    #plt.savefig(response)
+    #return response
+    return render(request, 'quake/map.html', {'figure': figure})
