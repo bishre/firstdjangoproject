@@ -37,7 +37,7 @@ def check_table():
 
 
 def usgs():
-    fhand = urllib.request.urlopen('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson').read()
+    fhand = urllib.request.urlopen('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/1.0_week.geojson').read()
     fhand = fhand.decode('UTF-8')
     lendb = check_table()
     print ('rows count:', lendb)
@@ -124,6 +124,21 @@ def contact(request):
             subject = form.cleaned_data['subject']
             emailAddress = form.cleaned_data['emailAddress']
             message = form.cleaned_data['message']
+            template = get_template('contact_template')
+            context = dict({
+                'subject' : subject,
+                'emailAddress' : emailAddress,
+                'message' : message,
+            })
+            content = template.render(context)
+            email = EmailMessage(
+                "New contact form submission",
+                content,
+                "Your website" + '',
+                ['youremail@gmail.com'],
+                headers={'Reply-To': emailAddress}
+            )
+            email.send()
             try:
                 obj = Contact(subject=subject, emailAddress=emailAddress, message=message)
                 obj.save()
