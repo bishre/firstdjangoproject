@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import quakedbs, Contact
-from quake.forms import FilterResults, ContactForm
+from .forms import FilterResults, ContactForm
 from django.core.mail import BadHeaderError
 import urllib.request, urllib.parse, urllib.error
 from django.http import HttpResponse
@@ -14,6 +14,8 @@ from django.template import Context
 from django.template.loader import get_template
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+fig = Figure()
 import numpy as np
 import csv
 import io
@@ -202,9 +204,14 @@ def map(request):
     title_string = 'Earthquakes of Magnitude 1.0 or Greater\n'
     title_string += '%s through %s' % (timestrings[-1][:10], timestrings[0][:10])
     plt.title(title_string)
-    figure = StringIO()
-    plt.show(figure)
-    #response = HttpResponse(content_type='image/png')
-    #plt.savefig(response)
-    #return response
-    return render(request, 'quake/map.html', {'figure': figure})
+    plt.savefig('quake/static/map.png')
+    #figure = StringIO()
+    #plt.show()
+    # canvas.print_png(response)
+    # return response
+    return render(request, 'quake/map.html')
+    #return render(request, 'quake/map.html')
+
+# def news(request):
+#     #return HttpResponse('this must work')
+#     return render(request, "quake/map.html")
